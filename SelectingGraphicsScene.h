@@ -18,9 +18,10 @@ protected:
 
 signals:
     void SelectionChanged(bool selection);
+    void SelectionEnd();
 
 public:
-    bool is_selection_worked, selecting;
+    bool is_selection_visiable, selecting;
     QPointF selection_start, selection_end;
 };
 

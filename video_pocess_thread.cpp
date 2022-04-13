@@ -3,15 +3,15 @@
 VideoProcessThread::VideoProcessThread(int camera, QMutex *lock):
     running(false), dataLock(lock), cameraID(camera), videoPath(""), selectingVision(false)
 {
-    currentSelectingTrackerType = CSRT;
-    selectingNeedInit = false;
+    currentSelectingTrackerType = KCF;
+    selectingNeedInit = selectionTrackingStart = false;
 }
 
 VideoProcessThread::VideoProcessThread(QString videoPath, QMutex *lock):
     running(false), dataLock(lock), cameraID(-1), videoPath(videoPath), selectingVision(false)
 {
-    currentSelectingTrackerType = CSRT;
-    selectingNeedInit = false;
+    currentSelectingTrackerType = KCF;
+    selectingNeedInit = selectionTrackingStart = false;
 }
 
 VideoProcessThread::~VideoProcessThread()
@@ -35,7 +35,25 @@ void VideoProcessThread::run() {
 
         if (selectingVision){
             if (selectingNeedInit){
-            }
+                switch (currentSelectingTrackerType) {
+                case CSRT:
+                    selectingTracker = cv::TrackerCSRT::create();
+                    break;
+
+                case KCF:
+                    selectingTracker = cv::TrackerKCF::create();
+                    break;
+
+                default:
+                    break;
+                }
+                selectingTracker->init(tmp_frame, selectingBound);
+                selectingNeedInit = false;
+            } else
+                if (selectionTrackingStart)
+                {
+                    selectingTracker->update(tmp_frame, selectingBound);
+                }
             cv::rectangle(tmp_frame, selectingBound, cv::Scalar(0, 0, 255), 1);
         }
 
@@ -50,9 +68,21 @@ void VideoProcessThread::run() {
 }
 
 void VideoProcessThread::setSelecting(int x1, int y1, int x2, int y2){
-    selectingBound = cv::Rect(x1, y1, x2 - x1, y2 - y1);
+    selectingBound = cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));
 }
 
 void VideoProcessThread::setSelectionVisiable(bool state){
     selectingVision = state;
+    if (!state)
+        selectionTrackingStart = false;
+}
+
+void VideoProcessThread::changeSelectionTracker(selectingTrackerType tracker){
+    selectingNeedInit = true;
+    currentSelectingTrackerType = tracker;
+}
+
+void VideoProcessThread::startSelectionTracker(){
+    selectingNeedInit = true;
+    selectionTrackingStart = true;
 }

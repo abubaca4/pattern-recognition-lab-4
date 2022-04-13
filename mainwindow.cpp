@@ -11,11 +11,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->graphicsView->setScene(&imageScene);
     connect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::set_selection);
+    connect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
 }
 
 MainWindow::~MainWindow()
 {
     disconnect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::set_selection);
+    disconnect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
     delete ui;
 }
 
@@ -64,14 +66,14 @@ void MainWindow::updateFrame(cv::Mat *mat)
 void MainWindow::set_selection(bool selection)
 {
     if (proc != nullptr){
-        if (selection != imageScene.is_selection_worked){
+        if (selection != imageScene.is_selection_visiable){
             proc->setSelectionVisiable(selection);
         }
         if (selection){
             proc->setSelecting(imageScene.selection_start.x(), imageScene.selection_start.y(), imageScene.selection_end.x(), imageScene.selection_end.y());
         }
     }
-    imageScene.is_selection_worked = selection;
+    imageScene.is_selection_visiable = selection;
 }
 
 
@@ -88,5 +90,11 @@ void MainWindow::clearVideoprocessThread(){
         disconnect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);
         connect(proc, &VideoProcessThread::finished, proc, &VideoProcessThread::deleteLater);
         proc = nullptr;
+    }
+}
+
+void MainWindow::startSelectionTracker(){
+    if (proc != nullptr){
+        proc->startSelectionTracker();
     }
 }

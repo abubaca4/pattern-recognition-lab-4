@@ -30,6 +30,7 @@ private slots:
 
     void updateFrame(cv::Mat *mat);
     void set_selection(bool selection);
+    void startSelectionTracker();
 
 private:
     void updateSelection();

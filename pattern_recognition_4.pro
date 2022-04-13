@@ -41,8 +41,7 @@ win32 {
     before_build.commands = chcp 1251
 
     #opencv
-    win32:CONFIG(release, debug|release): OPENCV_INSTALL_PATH = C:\opencv\build
-    else:win32:CONFIG(debug, debug|release): OPENCV_INSTALL_PATH = C:\opencv_d\build
+    OPENCV_INSTALL_PATH = C:\opencv-bulid\install
 
     win32:CONFIG(release, debug|release): OPENCV_VERSION = 455
     else:win32:CONFIG(debug, debug|release): OPENCV_VERSION = 455d
@@ -54,7 +53,7 @@ win32 {
         $${OPENCV_INSTALL_PATH}\include
 
     LIBS += \
-        -L$${OPENCV_INSTALL_PATH}\lib \
+        -L$${OPENCV_INSTALL_PATH}\x64\vc16\lib \
         -lopencv_core$${OPENCV_VERSION} \
         -lopencv_imgproc$${OPENCV_VERSION} \
         -lopencv_highgui$${OPENCV_VERSION} \
@@ -63,6 +62,7 @@ win32 {
         -lopencv_video$${OPENCV_VERSION} \
         -lopencv_calib3d$${OPENCV_VERSION} \
         -lopencv_photo$${OPENCV_VERSION} \
-        -lopencv_features2d$${OPENCV_VERSION}
+        -lopencv_features2d$${OPENCV_VERSION} \
+        -lopencv_tracking$${OPENCV_VERSION}
 
 }

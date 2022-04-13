@@ -6,6 +6,7 @@
 #include <QMutex>
 
 #include "opencv2/opencv.hpp"
+#include "opencv2/tracking.hpp"
 
 class VideoProcessThread : public QThread
 {
@@ -19,11 +20,14 @@ public:
     void setRunning(bool run) {running = run; };
     void setSelecting(int x1, int y1, int x2, int y2);
     void setSelectionVisiable(bool state);
+    void startSelectionTracker();
 
     enum selectingTrackerType{
         CSRT,
         KCF
     };
+
+    void changeSelectionTracker(selectingTrackerType tracker);
 
 protected:
     void run() override;
@@ -40,10 +44,11 @@ private:
     int cameraID;
     QString videoPath;
 
-    bool selectingVision;
+    bool selectingVision, selectionTrackingStart;
     cv::Rect selectingBound;
     selectingTrackerType currentSelectingTrackerType;
     bool selectingNeedInit;
+    cv::Ptr<cv::Tracker> selectingTracker;
 };
 
 #endif // VIDEO_POCESS_THREAD_H

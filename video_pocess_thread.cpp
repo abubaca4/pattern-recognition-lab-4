@@ -20,14 +20,21 @@ VideoProcessThread::~VideoProcessThread()
 void VideoProcessThread::run() {
     running = true;
     cv::VideoCapture cap;
+    bool isNeedFrameRateControl = false;
+    double fps = 0.0;
     if (cameraID != -1) {
         cap = cv::VideoCapture(cameraID);
     } else {
         cap = cv::VideoCapture(videoPath.toStdString(), cv::CAP_ANY, {cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY, cv::CAP_PROP_HW_DEVICE, -1});
+        fps = cap.get(cv::CAP_PROP_FPS);
+        fps = 1000 / fps;
+        isNeedFrameRateControl = true;
     }
 
     cv::Mat tmp_frame;
     while(running) {
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
         cap >> tmp_frame;
         if (tmp_frame.empty()) {
             break;
@@ -64,6 +71,12 @@ void VideoProcessThread::run() {
         dataLock->unlock();
 
         emit frameChanged(&frame);
+
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+        if (diff < fps){
+            std::this_thread::sleep_for(std::chrono::milliseconds((long long)fps - diff));
+        }
     }
 }
 

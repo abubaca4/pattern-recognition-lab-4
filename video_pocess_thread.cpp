@@ -21,6 +21,7 @@ void VideoProcessThread::run() {
     running = true;
     cv::VideoCapture cap;
     bool isNeedFrameRateControl = false;
+    std::chrono::steady_clock::time_point begin, end;
     double fps = 0.0;
     if (cameraID != -1) {
         cap = cv::VideoCapture(cameraID);
@@ -33,7 +34,9 @@ void VideoProcessThread::run() {
 
     cv::Mat tmp_frame;
     while(running) {
-        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        if (isNeedFrameRateControl){
+            begin = std::chrono::steady_clock::now();
+        }
 
         cap >> tmp_frame;
         if (tmp_frame.empty()) {
@@ -72,10 +75,12 @@ void VideoProcessThread::run() {
 
         emit frameChanged(&frame);
 
-        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-        if (diff < fps){
-            std::this_thread::sleep_for(std::chrono::milliseconds((long long)fps - diff));
+        if (isNeedFrameRateControl){
+            end = std::chrono::steady_clock::now();
+            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+            if (diff < fps){
+                std::this_thread::sleep_for(std::chrono::milliseconds((long long)fps - diff));
+            }
         }
     }
 }

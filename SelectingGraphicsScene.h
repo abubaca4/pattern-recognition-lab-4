@@ -21,8 +21,8 @@ signals:
     void SelectionEnd();
 
 public:
-    bool is_selection_visiable, selecting;
-    QPointF selection_start, selection_end;
+    bool isSelectionVisiable, selecting;
+    QPointF selectionStart, selectionEnd;
 };
 
 #endif // SELECTINGGRAPHICSSCENE_H

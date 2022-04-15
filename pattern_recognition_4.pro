@@ -12,12 +12,12 @@ SOURCES += \
     SelectingGraphicsScene.cpp \
     main.cpp \
     mainwindow.cpp \
-    video_pocess_thread.cpp
+    videoPocessThread.cpp
 
 HEADERS += \
     SelectingGraphicsScene.h \
     mainwindow.h \
-    video_pocess_thread.h
+    videoPocessThread.h
 
 FORMS += \
     mainwindow.ui

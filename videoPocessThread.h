@@ -1,5 +1,5 @@
-#ifndef VIDEO_POCESS_THREAD_H
-#define VIDEO_POCESS_THREAD_H
+#ifndef VIDEOPOCESSTHREAD_H
+#define VIDEOPOCESSTHREAD_H
 
 #include <QString>
 #include <QThread>
@@ -54,4 +54,4 @@ private:
     cv::Ptr<cv::Tracker> selectingTracker;
 };
 
-#endif // VIDEO_POCESS_THREAD_H
+#endif // VIDEOPOCESSTHREAD_H

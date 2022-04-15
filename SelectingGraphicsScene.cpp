@@ -2,7 +2,7 @@
 
 SelectingGraphicsScene::SelectingGraphicsScene(QObject *parent):
     QGraphicsScene(parent),
-    is_selection_visiable(false),
+    isSelectionVisiable(false),
     selecting(false)
 {};
 
@@ -10,14 +10,14 @@ void SelectingGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     switch (event->button()) {
     case Qt::LeftButton:
-        if (!is_selection_visiable){
+        if (!isSelectionVisiable){
             selecting = true;
-            selection_start = event->scenePos();
+            selectionStart = event->scenePos();
         }
         break;
 
     case Qt::RightButton:
-        if (is_selection_visiable){
+        if (isSelectionVisiable){
             emit SelectionChanged(false);
         }
         break;
@@ -30,7 +30,7 @@ void SelectingGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void SelectingGraphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if (selecting) {
-        selection_end = event->scenePos();
+        selectionEnd = event->scenePos();
         emit SelectionChanged(true);
     }
 }
@@ -41,7 +41,7 @@ void SelectingGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     {
         if (selecting){
             selecting = false;
-            selection_end = event->scenePos();
+            selectionEnd = event->scenePos();
             emit SelectionChanged(true);
             emit SelectionEnd();
         }

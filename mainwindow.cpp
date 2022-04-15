@@ -10,13 +10,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     ui->graphicsView->setScene(&imageScene);
-    connect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::set_selection);
+    connect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::setSelection);
     connect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
 }
 
 MainWindow::~MainWindow()
 {
-    disconnect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::set_selection);
+    disconnect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::setSelection);
     disconnect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
     delete ui;
 }
@@ -33,7 +33,7 @@ void MainWindow::on_actionOpen_file_triggered()
     if (dialog.exec()) {
         fileNames = dialog.selectedFiles();
         if (name_chacker.match(fileNames.at(0)).hasMatch()) {
-            proc = new VideoProcessThread(fileNames.at(0), &data_lock);
+            proc = new VideoProcessThread(fileNames.at(0), &dataLock);
         } else {
             QMessageBox::information(this, "Information", "Open error: bad format of filename.");
         }
@@ -44,11 +44,19 @@ void MainWindow::on_actionOpen_file_triggered()
     setVideoprocessThread();
 }
 
+void MainWindow::on_actionOpen_camera_triggered()
+{
+    int camID = 0;
+    clearVideoprocessThread();
+    proc = new VideoProcessThread(camID, &dataLock);
+    setVideoprocessThread();
+}
+
 void MainWindow::updateFrame(cv::Mat *mat)
 {
-    data_lock.lock();
+    dataLock.lock();
     mat->copyTo(currentFrame);
-    data_lock.unlock();
+    dataLock.unlock();
     QImage frame(
                 currentFrame.data,
                 currentFrame.cols,
@@ -63,28 +71,28 @@ void MainWindow::updateFrame(cv::Mat *mat)
     ui->graphicsView->setSceneRect(image.rect());
 }
 
-void MainWindow::set_selection(bool selection)
+void MainWindow::setSelection(bool selection)
 {
     if (proc != nullptr){
-        if (selection != imageScene.is_selection_visiable){
+        if (selection != imageScene.isSelectionVisiable){
             proc->setSelectionVisiable(selection);
         }
         if (selection){
-            proc->setSelecting(imageScene.selection_start.x(), imageScene.selection_start.y(), imageScene.selection_end.x(), imageScene.selection_end.y());
+            proc->setSelecting(imageScene.selectionStart.x(), imageScene.selectionStart.y(), imageScene.selectionEnd.x(), imageScene.selectionEnd.y());
         }
     }
-    imageScene.is_selection_visiable = selection;
+    imageScene.isSelectionVisiable = selection;
 }
 
 
-void MainWindow::setVideoprocessThread(){
+inline void MainWindow::setVideoprocessThread(){
     if (proc != nullptr){
         connect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);
         proc->start();
     }
 }
 
-void MainWindow::clearVideoprocessThread(){
+inline void MainWindow::clearVideoprocessThread(){
     if (proc != nullptr){
         proc->setRunning(false);
         disconnect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);

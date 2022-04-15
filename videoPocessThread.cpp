@@ -1,4 +1,4 @@
-#include "video_pocess_thread.h"
+#include "videoPocessThread.h"
 
 VideoProcessThread::VideoProcessThread(int camera, QMutex *lock):
     running(false), dataLock(lock), cameraID(camera), videoPath(""), selectingVision(false)
@@ -28,7 +28,7 @@ void VideoProcessThread::run() {
     } else {
         cap = cv::VideoCapture(videoPath.toStdString(), cv::CAP_ANY, {cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY, cv::CAP_PROP_HW_DEVICE, -1});
         fps = cap.get(cv::CAP_PROP_FPS);
-        fps = 1000 / fps;
+        fps = 1000.0 / fps;
         isNeedFrameRateControl = true;
     }
 
@@ -44,26 +44,27 @@ void VideoProcessThread::run() {
         }
 
         if (selectingVision){
-            if (selectingNeedInit){
-                switch (currentSelectingTrackerType) {
-                case CSRT:
-                    selectingTracker = cv::TrackerCSRT::create();
-                    break;
+            if (selectionTrackingStart)
+            {
+                if (selectingNeedInit){
+                    switch (currentSelectingTrackerType) {
+                    case CSRT:
+                        selectingTracker = cv::TrackerCSRT::create();
+                        break;
 
-                case KCF:
-                    selectingTracker = cv::TrackerKCF::create();
-                    break;
+                    case KCF:
+                        selectingTracker = cv::TrackerKCF::create();
+                        break;
 
-                default:
-                    break;
-                }
-                selectingTracker->init(tmp_frame, selectingBound);
-                selectingNeedInit = false;
-            } else
-                if (selectionTrackingStart)
-                {
+                    default:
+                        break;
+                    }
+                    selectingTracker->init(tmp_frame, selectingBound);
+                    selectingNeedInit = false;
+                } else {
                     selectingTracker->update(tmp_frame, selectingBound);
                 }
+            }
             cv::rectangle(tmp_frame, selectingBound, cv::Scalar(0, 0, 255), 1);
         }
 
@@ -73,8 +74,6 @@ void VideoProcessThread::run() {
         tmp_frame.copyTo(frame);
         dataLock->unlock();
 
-        emit frameChanged(&frame);
-
         if (isNeedFrameRateControl){
             end = std::chrono::steady_clock::now();
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
@@ -82,6 +81,8 @@ void VideoProcessThread::run() {
                 std::this_thread::sleep_for(std::chrono::milliseconds((long long)fps - diff));
             }
         }
+
+        emit frameChanged(&frame);
     }
 }
 

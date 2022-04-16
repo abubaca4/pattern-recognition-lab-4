@@ -113,6 +113,7 @@ void MainWindow::setSelection(bool selection)
 inline void MainWindow::setVideoprocessThread(){
     if (proc != nullptr){
         connect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);
+        connect(proc, &VideoProcessThread::trackingStatusUpdate, this, &MainWindow::trackingStatusChange);
         proc->start();
         trackerChange(nullptr);
     }
@@ -122,6 +123,7 @@ inline void MainWindow::clearVideoprocessThread(){
     if (proc != nullptr){
         proc->setRunning(false);
         disconnect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);
+        disconnect(proc, &VideoProcessThread::trackingStatusUpdate, this, &MainWindow::trackingStatusChange);
         connect(proc, &VideoProcessThread::finished, proc, &VideoProcessThread::deleteLater);
         proc = nullptr;
     }
@@ -131,4 +133,8 @@ void MainWindow::startSelectionTracker(){
     if (proc != nullptr){
         proc->startSelectionTracker();
     }
+}
+
+void MainWindow::trackingStatusChange(bool tracking){
+    imageScene.isSelectionVisiable = tracking;
 }

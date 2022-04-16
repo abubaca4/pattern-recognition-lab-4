@@ -43,6 +43,7 @@ protected:
 
 signals:
     void frameChanged(cv::Mat *data);
+    void trackingStatusUpdate(bool tracking);
 
 private:
     bool running;

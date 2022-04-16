@@ -32,8 +32,11 @@ private slots:
     void on_actionOpen_camera_triggered();
 
     void updateFrame(cv::Mat *mat);
-    void setSelection(bool selection);
+    void trackingStatusChange(bool tracking);
     void startSelectionTracker();
+    void setSelection(bool selection);
+
+    void trackerChange(QAction* action);
 
 private:
     void updateSelection();
@@ -46,8 +49,9 @@ private:
     QMutex dataLock;
     cv::Mat currentFrame;
     VideoProcessThread *proc;
+
     QMap<QString, VideoProcessThread::selectingTrackerType> buttonToTracker;
     QActionGroup trackerSelectGroup;
-    void trackerChange(QAction* action);
+
 };
 #endif // MAINWINDOW_H

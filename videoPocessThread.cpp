@@ -82,7 +82,16 @@ void VideoProcessThread::run() {
                     selectingTracker->init(tmp_frame, selectingBound);
                     selectingNeedInit = false;
                 } else {
-                    selectingTracker->update(tmp_frame, selectingBound);
+                    static uint fail_count = 0;
+                    if (selectingTracker->update(tmp_frame, selectingBound)){
+                        fail_count = 0;
+                    } else {
+                        fail_count++;
+                    }
+                    if (fail_count >= 5){
+                        selectingVision = false;
+                        emit trackingStatusUpdate(false);
+                    }
                 }
             }
             cv::rectangle(tmp_frame, selectingBound, cv::Scalar(0, 0, 255), 1);

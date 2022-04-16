@@ -3,14 +3,14 @@
 VideoProcessThread::VideoProcessThread(int camera, QMutex *lock):
     running(false), dataLock(lock), cameraID(camera), videoPath(""), selectingVision(false)
 {
-    currentSelectingTrackerType = KCF;
+    currentSelectingTrackerType = CSRT;
     selectingNeedInit = selectionTrackingStart = false;
 }
 
 VideoProcessThread::VideoProcessThread(QString videoPath, QMutex *lock):
     running(false), dataLock(lock), cameraID(-1), videoPath(videoPath), selectingVision(false)
 {
-    currentSelectingTrackerType = KCF;
+    currentSelectingTrackerType = CSRT;
     selectingNeedInit = selectionTrackingStart = false;
 }
 

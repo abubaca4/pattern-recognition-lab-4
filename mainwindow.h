@@ -8,6 +8,7 @@
 #include <QKeyEvent>
 #include <QPoint>
 #include <QMap>
+#include <QActionGroup>
 
 #include "opencv2/opencv.hpp"
 
@@ -45,5 +46,8 @@ private:
     QMutex dataLock;
     cv::Mat currentFrame;
     VideoProcessThread *proc;
+    QMap<QString, VideoProcessThread::selectingTrackerType> buttonToTracker;
+    QActionGroup trackerSelectGroup;
+    void trackerChange(QAction* action);
 };
 #endif // MAINWINDOW_H

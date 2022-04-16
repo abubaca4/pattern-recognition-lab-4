@@ -6,19 +6,39 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , imageScene(this)
     , proc(nullptr)
+    , trackerSelectGroup(this)
 {
     ui->setupUi(this);
 
     ui->graphicsView->setScene(&imageScene);
     connect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::setSelection);
     connect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
+
+    buttonToTracker.insert("CSRT", VideoProcessThread::selectingTrackerType::CSRT);
+    buttonToTracker.insert("KCF", VideoProcessThread::selectingTrackerType::KCF);
+
+    trackerSelectGroup.setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
+    foreach(QAction *action, ui->menuTracker_select->actions()){
+        trackerSelectGroup.addAction(action);
+    }
+    connect(&trackerSelectGroup, &QActionGroup::triggered, this, &MainWindow::trackerChange);
 }
 
 MainWindow::~MainWindow()
 {
     disconnect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::setSelection);
     disconnect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
+    disconnect(&trackerSelectGroup, &QActionGroup::triggered, this, &MainWindow::trackerChange);
     delete ui;
+}
+
+void MainWindow::trackerChange(QAction* action){
+    Q_UNUSED(action);
+    if (proc != nullptr){
+        if (buttonToTracker.contains(trackerSelectGroup.checkedAction()->text())){
+            proc->changeSelectionTracker(buttonToTracker[trackerSelectGroup.checkedAction()->text()]);
+        }
+    }
 }
 
 void MainWindow::on_actionOpen_file_triggered()
@@ -89,6 +109,7 @@ inline void MainWindow::setVideoprocessThread(){
     if (proc != nullptr){
         connect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);
         proc->start();
+        trackerChange(nullptr);
     }
 }
 

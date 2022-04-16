@@ -16,6 +16,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     buttonToTracker.insert("CSRT", VideoProcessThread::selectingTrackerType::CSRT);
     buttonToTracker.insert("KCF", VideoProcessThread::selectingTrackerType::KCF);
+    buttonToTracker.insert("MIL", VideoProcessThread::selectingTrackerType::MIL);
+    buttonToTracker.insert("MOSSE", VideoProcessThread::selectingTrackerType::MOSSE);
+    buttonToTracker.insert("Boosting", VideoProcessThread::selectingTrackerType::Boosting);
+    buttonToTracker.insert("MedianFlow", VideoProcessThread::selectingTrackerType::MedianFlow);
+    buttonToTracker.insert("TLD", VideoProcessThread::selectingTrackerType::TLD);
 
     trackerSelectGroup.setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
     foreach(QAction *action, ui->menuTracker_select->actions()){

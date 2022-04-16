@@ -56,6 +56,26 @@ void VideoProcessThread::run() {
                         selectingTracker = cv::TrackerKCF::create();
                         break;
 
+                    case MIL:
+                        selectingTracker = cv::TrackerMIL::create();
+                        break;
+
+                    case MOSSE:
+                        selectingTracker = cv::legacy::upgradeTrackingAPI(cv::legacy::TrackerMOSSE::create());
+                        break;
+
+                    case Boosting:
+                        selectingTracker = cv::legacy::upgradeTrackingAPI(cv::legacy::TrackerBoosting::create());
+                        break;
+
+                    case MedianFlow:
+                        selectingTracker = cv::legacy::upgradeTrackingAPI(cv::legacy::TrackerMedianFlow::create());
+                        break;
+
+                    case TLD:
+                        selectingTracker = cv::legacy::upgradeTrackingAPI(cv::legacy::TrackerTLD::create());
+                        break;
+
                     default:
                         break;
                     }

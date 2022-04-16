@@ -42,6 +42,11 @@
     </property>
     <addaction name="actionCSRT"/>
     <addaction name="actionKCF"/>
+    <addaction name="actionMIL"/>
+    <addaction name="actionMOSSE"/>
+    <addaction name="actionBoosting"/>
+    <addaction name="actionMedianFlow"/>
+    <addaction name="actionTLD"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTracker_select"/>
@@ -77,6 +82,46 @@
    </property>
    <property name="text">
     <string>KCF</string>
+   </property>
+  </action>
+  <action name="actionMIL">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>MIL</string>
+   </property>
+  </action>
+  <action name="actionMOSSE">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>MOSSE</string>
+   </property>
+  </action>
+  <action name="actionBoosting">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Boosting</string>
+   </property>
+  </action>
+  <action name="actionMedianFlow">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>MedianFlow</string>
+   </property>
+  </action>
+  <action name="actionTLD">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>TLD</string>
    </property>
   </action>
  </widget>

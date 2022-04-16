@@ -7,6 +7,7 @@
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/tracking.hpp"
+#include "opencv2/tracking/tracking_legacy.hpp"
 
 #include <chrono>
 #include <thread>
@@ -27,7 +28,12 @@ public:
 
     enum selectingTrackerType{
         CSRT,
-        KCF
+        KCF,
+        MIL,
+        MOSSE,
+        Boosting,
+        MedianFlow,
+        TLD
     };
 
     void changeSelectionTracker(selectingTrackerType tracker);

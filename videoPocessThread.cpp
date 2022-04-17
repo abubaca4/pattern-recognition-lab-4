@@ -190,10 +190,11 @@ void VideoProcessThread::calculateStats(const cv::Mat &in){
     static auto begin = std::chrono::steady_clock::now();
     static int count = 0;
     count++;
-    if (count > 30){
-        auto end = std::chrono::steady_clock::now();
-        fps = (qreal)count / std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() * 1000;
-        begin = end;
+    auto current = std::chrono::steady_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - begin).count();
+    if (diff > 1000){
+        fps = (qreal)count / diff * 1000.0;
+        begin = current;
         count = 0;
     }
     emit statsChanged(fps);

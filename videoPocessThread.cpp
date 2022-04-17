@@ -45,6 +45,8 @@ void VideoProcessThread::run() {
             break;
         }
 
+        calculateStats(tmp_frame);
+
         if (selectingVision){
             if (selectionTrackingStart)
             {
@@ -114,8 +116,6 @@ void VideoProcessThread::run() {
         }
 
         cv::cvtColor(tmp_frame, tmp_frame, cv::COLOR_BGR2RGB);
-
-        calculateStats(tmp_frame);
 
         dataLock->lock();
         tmp_frame.copyTo(frame);

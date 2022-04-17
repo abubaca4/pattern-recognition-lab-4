@@ -9,6 +9,7 @@
 #include <QPoint>
 #include <QMap>
 #include <QActionGroup>
+#include <QLabel>
 
 #include <vector>
 #include <array>
@@ -39,6 +40,7 @@ private slots:
     void startSelectionTracker();
     void setSelection(bool selection);
     void updateDetection(std::vector<std::array<int, 4>> *detectionData);
+    void updateStats(qreal fps);
 
     void trackerChange(QAction* action);
     void detectionChange(QAction* action);
@@ -59,5 +61,7 @@ private:
 
     QMap<QString, VideoProcessThread::detectionType> buttonToDetection;
     QActionGroup detectionSelectGroup;
+
+    QLabel statusLabel;
 };
 #endif // MAINWINDOW_H

@@ -55,6 +55,7 @@ signals:
     void frameChanged(cv::Mat *data);
     void trackingStatusUpdate(bool tracking);
     void detectionChanged(std::vector<std::array<int, 4>> *data);
+    void statsChanged(qreal fps);
 
 private:
     bool running;
@@ -74,6 +75,8 @@ private:
     detectionType detection;
     std::vector<std::array<int, 4>> detectionBorder;
     void detectMotion(const cv::Mat &in);
+
+    void calculateStats(const cv::Mat &in);
 };
 
 #endif // VIDEOPOCESSTHREAD_H

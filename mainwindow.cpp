@@ -11,6 +11,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    ui->statusbar->addPermanentWidget(&statusLabel);
+
     ui->graphicsView->setScene(&imageScene);
     connect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::setSelection);
     connect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
@@ -94,8 +96,7 @@ void MainWindow::on_actionOpen_file_triggered()
         } else {
             QMessageBox::information(this, "Information", "Open error: bad format of filename.");
         }
-    }
-    if (fileNames.isEmpty()){
+    } else {
         return;
     }
     setVideoprocessThread();
@@ -147,6 +148,7 @@ inline void MainWindow::setVideoprocessThread(){
         connect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);
         connect(proc, &VideoProcessThread::trackingStatusUpdate, this, &MainWindow::trackingStatusChange);
         connect(proc, &VideoProcessThread::detectionChanged, this, &MainWindow::updateDetection);
+        connect(proc, &VideoProcessThread::statsChanged, this, &MainWindow::updateStats);
         proc->start();
         trackerChange(nullptr);
         detectionChange(nullptr);
@@ -159,6 +161,7 @@ inline void MainWindow::clearVideoprocessThread(){
         disconnect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);
         disconnect(proc, &VideoProcessThread::trackingStatusUpdate, this, &MainWindow::trackingStatusChange);
         disconnect(proc, &VideoProcessThread::detectionChanged, this, &MainWindow::updateDetection);
+        disconnect(proc, &VideoProcessThread::statsChanged, this, &MainWindow::updateStats);
         connect(proc, &VideoProcessThread::finished, proc, &VideoProcessThread::deleteLater);
         proc = nullptr;
     }
@@ -178,4 +181,8 @@ void MainWindow::updateDetection(std::vector<std::array<int, 4>> *detectionData)
     proc->detBorderLock.lock();
     imageScene.detectionBorders = *detectionData;
     proc->detBorderLock.unlock();
+}
+
+void MainWindow::updateStats(qreal fps){
+    statusLabel.setText(QString::asprintf("FPS: %.2f", fps));
 }

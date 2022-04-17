@@ -113,7 +113,9 @@ void VideoProcessThread::run() {
             }
         }
 
-        cvtColor(tmp_frame, tmp_frame, cv::COLOR_BGR2RGB);
+        cv::cvtColor(tmp_frame, tmp_frame, cv::COLOR_BGR2RGB);
+
+        calculateStats(tmp_frame);
 
         dataLock->lock();
         tmp_frame.copyTo(frame);
@@ -154,7 +156,7 @@ void VideoProcessThread::startSelectionTracker(){
 void VideoProcessThread::detectMotion(const cv::Mat &in){
     static cv::Ptr<cv::BackgroundSubtractorMOG2> segmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
     cv::Mat fgmask;
-    segmentor->apply(frame, fgmask);
+    segmentor->apply(in, fgmask);
     if (fgmask.empty()) {
         return;
     }
@@ -181,4 +183,18 @@ void VideoProcessThread::detectMotion(const cv::Mat &in){
 
 void VideoProcessThread::changeDetectionType(detectionType deT){
     detection = deT;
+}
+
+void VideoProcessThread::calculateStats(const cv::Mat &in){
+    static qreal fps = 0;
+    static auto begin = std::chrono::steady_clock::now();
+    static int count = 0;
+    count++;
+    if (count > 30){
+        auto end = std::chrono::steady_clock::now();
+        fps = (qreal)count / std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() * 1000;
+        begin = end;
+        count = 0;
+    }
+    emit statsChanged(fps);
 }

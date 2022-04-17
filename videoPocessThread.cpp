@@ -5,6 +5,7 @@ VideoProcessThread::VideoProcessThread(int camera, QMutex *lock):
 {
     currentSelectingTrackerType = CSRT;
     selectingNeedInit = selectionTrackingStart = false;
+    detection = No;
 }
 
 VideoProcessThread::VideoProcessThread(QString videoPath, QMutex *lock):
@@ -12,6 +13,7 @@ VideoProcessThread::VideoProcessThread(QString videoPath, QMutex *lock):
 {
     currentSelectingTrackerType = CSRT;
     selectingNeedInit = selectionTrackingStart = false;
+    detection = No;
 }
 
 VideoProcessThread::~VideoProcessThread()
@@ -95,6 +97,20 @@ void VideoProcessThread::run() {
                 }
             }
             cv::rectangle(tmp_frame, selectingBound, cv::Scalar(0, 0, 255), 1);
+        } else {
+            switch (detection) {
+            case Motion:
+                detectMotion(tmp_frame);
+                break;
+            default:
+                break;
+            }
+            if (detection != No){
+                emit detectionChanged(&detectionBorder);
+                for (auto &i: detectionBorder){
+                    cv::rectangle(tmp_frame, cv::Rect(cv::Point(i[0], i[1]), cv::Point(i[2], i[3])), cv::Scalar(0, 0, 255), 1);
+                }
+            }
         }
 
         cvtColor(tmp_frame, tmp_frame, cv::COLOR_BGR2RGB);
@@ -133,4 +149,36 @@ void VideoProcessThread::changeSelectionTracker(selectingTrackerType tracker){
 void VideoProcessThread::startSelectionTracker(){
     selectingNeedInit = true;
     selectionTrackingStart = true;
+}
+
+void VideoProcessThread::detectMotion(const cv::Mat &in){
+    static cv::Ptr<cv::BackgroundSubtractorMOG2> segmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
+    cv::Mat fgmask;
+    segmentor->apply(frame, fgmask);
+    if (fgmask.empty()) {
+        return;
+    }
+
+    cv::threshold(fgmask, fgmask, 25, 255, cv::THRESH_BINARY);
+
+    const int noise_size = 9;
+    static cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));;
+
+    cv::erode(fgmask, fgmask, kernel);
+    cv::dilate(fgmask, fgmask, kernel, cv::Point(-1, -1), 3);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(fgmask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+
+    detBorderLock.lock();
+    detectionBorder = {};
+    for (auto &i: contours){
+        cv::Rect rect = cv::boundingRect(i);
+        detectionBorder.push_back({rect.tl().x, rect.tl().y, rect.br().x, rect.br().y});
+    }
+    detBorderLock.unlock();
+}
+
+void VideoProcessThread::changeDetectionType(detectionType deT){
+    detection = deT;
 }

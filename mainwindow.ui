@@ -48,8 +48,16 @@
     <addaction name="actionMedianFlow"/>
     <addaction name="actionTLD"/>
    </widget>
+   <widget class="QMenu" name="menuSelection_mode">
+    <property name="title">
+     <string>Selection mode</string>
+    </property>
+    <addaction name="actionManual"/>
+    <addaction name="actionMotion"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTracker_select"/>
+   <addaction name="menuSelection_mode"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen_file">
@@ -122,6 +130,25 @@
    </property>
    <property name="text">
     <string>TLD</string>
+   </property>
+  </action>
+  <action name="actionManual">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Manual</string>
+   </property>
+  </action>
+  <action name="actionMotion">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Motion</string>
    </property>
   </action>
  </widget>

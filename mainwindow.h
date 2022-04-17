@@ -10,6 +10,9 @@
 #include <QMap>
 #include <QActionGroup>
 
+#include <vector>
+#include <array>
+
 #include "opencv2/opencv.hpp"
 
 #include "videoPocessThread.h"
@@ -35,11 +38,12 @@ private slots:
     void trackingStatusChange(bool tracking);
     void startSelectionTracker();
     void setSelection(bool selection);
+    void updateDetection(std::vector<std::array<int, 4>> *detectionData);
 
     void trackerChange(QAction* action);
+    void detectionChange(QAction* action);
 
 private:
-    void updateSelection();
     void setVideoprocessThread();
     void clearVideoprocessThread();
 
@@ -53,5 +57,7 @@ private:
     QMap<QString, VideoProcessThread::selectingTrackerType> buttonToTracker;
     QActionGroup trackerSelectGroup;
 
+    QMap<QString, VideoProcessThread::detectionType> buttonToDetection;
+    QActionGroup detectionSelectGroup;
 };
 #endif // MAINWINDOW_H

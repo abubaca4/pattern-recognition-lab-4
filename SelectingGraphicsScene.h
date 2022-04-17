@@ -3,6 +3,11 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QtMath>
+
+#include <vector>
+#include <array>
+#include <limits>
 
 class SelectingGraphicsScene: public QGraphicsScene
 {
@@ -23,6 +28,17 @@ signals:
 public:
     bool isSelectionVisiable, selecting;
     QPointF selectionStart, selectionEnd;
+    std::vector<std::array<int, 4>> detectionBorders;
+
+    enum selectionType{
+        Manual,
+        borders
+    };
+
+    selectionType selectionT;
+
+private:
+    static qreal lengthPtP(int x1, int y1, int x2, int y2);
 };
 
 #endif // SELECTINGGRAPHICSSCENE_H

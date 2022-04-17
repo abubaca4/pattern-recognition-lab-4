@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
     , imageScene(this)
     , proc(nullptr)
     , trackerSelectGroup(this)
+    , detectionSelectGroup(this)
 {
     ui->setupUi(this);
 
@@ -27,6 +28,16 @@ MainWindow::MainWindow(QWidget *parent)
         trackerSelectGroup.addAction(action);
     }
     connect(&trackerSelectGroup, &QActionGroup::triggered, this, &MainWindow::trackerChange);
+
+    buttonToDetection.insert("Manual", VideoProcessThread::detectionType::No);
+    buttonToDetection.insert("Motion", VideoProcessThread::detectionType::Motion);
+
+    detectionSelectGroup.setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
+    foreach(QAction *action, ui->menuSelection_mode->actions()){
+        detectionSelectGroup.addAction(action);
+    }
+    connect(&detectionSelectGroup, &QActionGroup::triggered, this, &MainWindow::detectionChange);
+    detectionChange(nullptr);
 }
 
 MainWindow::~MainWindow()
@@ -34,6 +45,8 @@ MainWindow::~MainWindow()
     disconnect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::setSelection);
     disconnect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
     disconnect(&trackerSelectGroup, &QActionGroup::triggered, this, &MainWindow::trackerChange);
+    disconnect(&detectionSelectGroup, &QActionGroup::triggered, this, &MainWindow::detectionChange);
+    clearVideoprocessThread();
     delete ui;
 }
 
@@ -42,6 +55,25 @@ void MainWindow::trackerChange(QAction* action){
     if (proc != nullptr){
         if (buttonToTracker.contains(trackerSelectGroup.checkedAction()->text())){
             proc->changeSelectionTracker(buttonToTracker[trackerSelectGroup.checkedAction()->text()]);
+        }
+    }
+}
+
+void MainWindow::detectionChange(QAction* action){
+    Q_UNUSED(action);
+    if (buttonToDetection.contains(detectionSelectGroup.checkedAction()->text())){
+        auto detectionMode = buttonToDetection[detectionSelectGroup.checkedAction()->text()];
+        switch (detectionMode) {
+        case VideoProcessThread::detectionType::Motion:
+            imageScene.selectionT = SelectingGraphicsScene::selectionType::borders;
+            break;
+        case VideoProcessThread::detectionType::No:
+        default:
+            imageScene.selectionT = SelectingGraphicsScene::selectionType::Manual;
+            break;
+        }
+        if (proc != nullptr){
+            proc->changeDetectionType(detectionMode);
         }
     }
 }
@@ -114,8 +146,10 @@ inline void MainWindow::setVideoprocessThread(){
     if (proc != nullptr){
         connect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);
         connect(proc, &VideoProcessThread::trackingStatusUpdate, this, &MainWindow::trackingStatusChange);
+        connect(proc, &VideoProcessThread::detectionChanged, this, &MainWindow::updateDetection);
         proc->start();
         trackerChange(nullptr);
+        detectionChange(nullptr);
     }
 }
 
@@ -124,6 +158,7 @@ inline void MainWindow::clearVideoprocessThread(){
         proc->setRunning(false);
         disconnect(proc, &VideoProcessThread::frameChanged, this, &MainWindow::updateFrame);
         disconnect(proc, &VideoProcessThread::trackingStatusUpdate, this, &MainWindow::trackingStatusChange);
+        disconnect(proc, &VideoProcessThread::detectionChanged, this, &MainWindow::updateDetection);
         connect(proc, &VideoProcessThread::finished, proc, &VideoProcessThread::deleteLater);
         proc = nullptr;
     }
@@ -137,4 +172,10 @@ void MainWindow::startSelectionTracker(){
 
 void MainWindow::trackingStatusChange(bool tracking){
     imageScene.isSelectionVisiable = tracking;
+}
+
+void MainWindow::updateDetection(std::vector<std::array<int, 4>> *detectionData){
+    proc->detBorderLock.lock();
+    imageScene.detectionBorders = *detectionData;
+    proc->detBorderLock.unlock();
 }

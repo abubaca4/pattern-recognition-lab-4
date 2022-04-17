@@ -11,6 +11,8 @@
 
 #include <chrono>
 #include <thread>
+#include <vector>
+#include <array>
 
 class VideoProcessThread : public QThread
 {
@@ -38,12 +40,21 @@ public:
 
     void changeSelectionTracker(selectingTrackerType tracker);
 
+    enum detectionType{
+        No,
+        Motion
+    };
+
+    void changeDetectionType(detectionType deT);
+    QMutex detBorderLock;
+
 protected:
     void run() override;
 
 signals:
     void frameChanged(cv::Mat *data);
     void trackingStatusUpdate(bool tracking);
+    void detectionChanged(std::vector<std::array<int, 4>> *data);
 
 private:
     bool running;
@@ -59,6 +70,10 @@ private:
     selectingTrackerType currentSelectingTrackerType;
     bool selectingNeedInit;
     cv::Ptr<cv::Tracker> selectingTracker;
+
+    detectionType detection;
+    std::vector<std::array<int, 4>> detectionBorder;
+    void detectMotion(const cv::Mat &in);
 };
 
 #endif // VIDEOPOCESSTHREAD_H

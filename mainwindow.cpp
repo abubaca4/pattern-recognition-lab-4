@@ -17,13 +17,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::setSelection);
     connect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
 
-    buttonToTracker.insert("CSRT", VideoProcessThread::selectingTrackerType::CSRT);
-    buttonToTracker.insert("KCF", VideoProcessThread::selectingTrackerType::KCF);
-    buttonToTracker.insert("MIL", VideoProcessThread::selectingTrackerType::MIL);
-    buttonToTracker.insert("MOSSE", VideoProcessThread::selectingTrackerType::MOSSE);
-    buttonToTracker.insert("Boosting", VideoProcessThread::selectingTrackerType::Boosting);
-    buttonToTracker.insert("MedianFlow", VideoProcessThread::selectingTrackerType::MedianFlow);
-    buttonToTracker.insert("TLD", VideoProcessThread::selectingTrackerType::TLD);
+    buttonToTracker.insert(ui->actionCSRT, VideoProcessThread::selectingTrackerType::CSRT);
+    buttonToTracker.insert(ui->actionKCF, VideoProcessThread::selectingTrackerType::KCF);
+    buttonToTracker.insert(ui->actionMIL, VideoProcessThread::selectingTrackerType::MIL);
+    buttonToTracker.insert(ui->actionMOSSE, VideoProcessThread::selectingTrackerType::MOSSE);
+    buttonToTracker.insert(ui->actionBoosting, VideoProcessThread::selectingTrackerType::Boosting);
+    buttonToTracker.insert(ui->actionMedianFlow, VideoProcessThread::selectingTrackerType::MedianFlow);
+    buttonToTracker.insert(ui->actionTLD, VideoProcessThread::selectingTrackerType::TLD);
 
     trackerSelectGroup.setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
     foreach(QAction *action, ui->menuTracker_select->actions()){
@@ -31,8 +31,8 @@ MainWindow::MainWindow(QWidget *parent)
     }
     connect(&trackerSelectGroup, &QActionGroup::triggered, this, &MainWindow::trackerChange);
 
-    buttonToDetection.insert("Manual", VideoProcessThread::detectionType::No);
-    buttonToDetection.insert("Motion", VideoProcessThread::detectionType::Motion);
+    buttonToDetection.insert(ui->actionManual, VideoProcessThread::detectionType::No);
+    buttonToDetection.insert(ui->actionMotion, VideoProcessThread::detectionType::Motion);
 
     detectionSelectGroup.setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
     foreach(QAction *action, ui->menuSelection_mode->actions()){
@@ -55,16 +55,16 @@ MainWindow::~MainWindow()
 void MainWindow::trackerChange(QAction* action){
     Q_UNUSED(action);
     if (proc != nullptr){
-        if (buttonToTracker.contains(trackerSelectGroup.checkedAction()->text())){
-            proc->changeSelectionTracker(buttonToTracker[trackerSelectGroup.checkedAction()->text()]);
+        if (buttonToTracker.contains(trackerSelectGroup.checkedAction())){
+            proc->changeSelectionTracker(buttonToTracker[trackerSelectGroup.checkedAction()]);
         }
     }
 }
 
 void MainWindow::detectionChange(QAction* action){
     Q_UNUSED(action);
-    if (buttonToDetection.contains(detectionSelectGroup.checkedAction()->text())){
-        auto detectionMode = buttonToDetection[detectionSelectGroup.checkedAction()->text()];
+    if (buttonToDetection.contains(detectionSelectGroup.checkedAction())){
+        auto detectionMode = buttonToDetection[detectionSelectGroup.checkedAction()];
         switch (detectionMode) {
         case VideoProcessThread::detectionType::Motion:
             imageScene.selectionT = SelectingGraphicsScene::selectionType::borders;

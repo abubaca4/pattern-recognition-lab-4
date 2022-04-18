@@ -56,10 +56,10 @@ private:
     cv::Mat currentFrame;
     VideoProcessThread *proc;
 
-    QMap<QString, VideoProcessThread::selectingTrackerType> buttonToTracker;
+    QMap<QAction*, VideoProcessThread::selectingTrackerType> buttonToTracker;
     QActionGroup trackerSelectGroup;
 
-    QMap<QString, VideoProcessThread::detectionType> buttonToDetection;
+    QMap<QAction*, VideoProcessThread::detectionType> buttonToDetection;
     QActionGroup detectionSelectGroup;
 
     QLabel statusLabel;

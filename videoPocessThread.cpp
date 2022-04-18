@@ -6,6 +6,12 @@ VideoProcessThread::VideoProcessThread(int camera, QMutex *lock):
     currentSelectingTrackerType = CSRT;
     selectingNeedInit = selectionTrackingStart = false;
     detection = No;
+    motionSegmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
+    const int noise_size = 9;
+    motionKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
+    fps = 0.0;
+    statsBegin = std::chrono::steady_clock::now();
+    statsFrameCount = 0;
 }
 
 VideoProcessThread::VideoProcessThread(QString videoPath, QMutex *lock):
@@ -14,6 +20,12 @@ VideoProcessThread::VideoProcessThread(QString videoPath, QMutex *lock):
     currentSelectingTrackerType = CSRT;
     selectingNeedInit = selectionTrackingStart = false;
     detection = No;
+    motionSegmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
+    const int noise_size = 9;
+    motionKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
+    fps = 0.0;
+    statsBegin = std::chrono::steady_clock::now();
+    statsFrameCount = 0;
 }
 
 VideoProcessThread::~VideoProcessThread()
@@ -24,15 +36,17 @@ void VideoProcessThread::run() {
     cv::VideoCapture cap;
     bool isNeedFrameRateControl = false;
     std::chrono::steady_clock::time_point begin, end;
-    double fps = 0.0;
+    double fpsDelayTaget = 0.0;
     if (cameraID != -1) {
         cap = cv::VideoCapture(cameraID);
     } else {
         cap = cv::VideoCapture(videoPath.toStdString(), cv::CAP_ANY, {cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY, cv::CAP_PROP_HW_DEVICE, -1});
-        fps = cap.get(cv::CAP_PROP_FPS);
-        fps = 1000.0 / fps;
+        fpsDelayTaget = cap.get(cv::CAP_PROP_FPS);
+        fpsDelayTaget = 1000.0 / fpsDelayTaget;
         isNeedFrameRateControl = true;
     }
+
+    uint trackerFailСount = 0;
 
     isNeedFrameRateControl &= isFrameControlEnabled;
 
@@ -88,13 +102,12 @@ void VideoProcessThread::run() {
                     selectingTracker->init(tmp_frame, selectingBound);
                     selectingNeedInit = false;
                 } else {
-                    static uint fail_count = 0;
                     if (selectingTracker->update(tmp_frame, selectingBound)){
-                        fail_count = 0;
+                        trackerFailСount = 0;
                     } else {
-                        fail_count++;
+                        trackerFailСount++;
                     }
-                    if (fail_count >= 5){
+                    if (trackerFailСount >= 5){
                         selectingVision = false;
                         emit trackingStatusUpdate(false);
                     }
@@ -126,8 +139,8 @@ void VideoProcessThread::run() {
         if (isNeedFrameRateControl){
             end = std::chrono::steady_clock::now();
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-            if (diff < fps){
-                this->thread()->msleep((long long)fps - diff);
+            if (diff < fpsDelayTaget){
+                this->thread()->msleep((long long)fpsDelayTaget - diff);
             }
         }
 
@@ -156,20 +169,16 @@ void VideoProcessThread::startSelectionTracker(){
 }
 
 void VideoProcessThread::detectMotion(const cv::Mat &in){
-    static cv::Ptr<cv::BackgroundSubtractorMOG2> segmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
     cv::Mat fgmask;
-    segmentor->apply(in, fgmask);
+    motionSegmentor->apply(in, fgmask);
     if (fgmask.empty()) {
         return;
     }
 
     cv::threshold(fgmask, fgmask, 25, 255, cv::THRESH_BINARY);
 
-    const int noise_size = 9;
-    static cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));;
-
-    cv::erode(fgmask, fgmask, kernel);
-    cv::dilate(fgmask, fgmask, kernel, cv::Point(-1, -1), 3);
+    cv::erode(fgmask, fgmask, motionKernel);
+    cv::dilate(fgmask, fgmask, motionKernel, cv::Point(-1, -1), 3);
 
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(fgmask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
@@ -188,16 +197,13 @@ void VideoProcessThread::changeDetectionType(detectionType deT){
 }
 
 void VideoProcessThread::calculateStats(const cv::Mat &in){
-    static qreal fps = 0;
-    static auto begin = std::chrono::steady_clock::now();
-    static int count = 0;
-    count++;
+    statsFrameCount++;
     auto current = std::chrono::steady_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - begin).count();
+    long long diff = std::chrono::duration_cast<std::chrono::milliseconds>(current - statsBegin).count();
     if (diff > 1000){
-        fps = (qreal)count / diff * 1000.0;
-        begin = current;
-        count = 0;
+        fps = (qreal)statsFrameCount / diff * 1000.0;
+        statsBegin = current;
+        statsFrameCount = 0;
     }
     emit statsChanged(fps);
 }

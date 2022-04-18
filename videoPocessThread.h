@@ -75,8 +75,13 @@ private:
     detectionType detection;
     std::vector<std::array<int, 4>> detectionBorder;
     void detectMotion(const cv::Mat &in);
+    cv::Ptr<cv::BackgroundSubtractorMOG2> motionSegmentor;
+    cv::Mat motionKernel;
 
     void calculateStats(const cv::Mat &in);
+    qreal fps;
+    std::chrono::steady_clock::time_point statsBegin;
+    uint statsFrameCount;
 
     const bool isFrameControlEnabled;
 };

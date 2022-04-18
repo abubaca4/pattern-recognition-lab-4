@@ -1,7 +1,7 @@
 #include "videoPocessThread.h"
 
 VideoProcessThread::VideoProcessThread(int camera, QMutex *lock):
-    running(false), dataLock(lock), cameraID(camera), videoPath(""), selectingVision(false)
+    running(false), dataLock(lock), cameraID(camera), videoPath(""), selectingVision(false), isFrameControlEnabled(true)
 {
     currentSelectingTrackerType = CSRT;
     selectingNeedInit = selectionTrackingStart = false;
@@ -9,7 +9,7 @@ VideoProcessThread::VideoProcessThread(int camera, QMutex *lock):
 }
 
 VideoProcessThread::VideoProcessThread(QString videoPath, QMutex *lock):
-    running(false), dataLock(lock), cameraID(-1), videoPath(videoPath), selectingVision(false)
+    running(false), dataLock(lock), cameraID(-1), videoPath(videoPath), selectingVision(false), isFrameControlEnabled(true)
 {
     currentSelectingTrackerType = CSRT;
     selectingNeedInit = selectionTrackingStart = false;
@@ -33,6 +33,8 @@ void VideoProcessThread::run() {
         fps = 1000.0 / fps;
         isNeedFrameRateControl = true;
     }
+
+    isNeedFrameRateControl &= isFrameControlEnabled;
 
     cv::Mat tmp_frame;
     while(running) {
@@ -125,7 +127,7 @@ void VideoProcessThread::run() {
             end = std::chrono::steady_clock::now();
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
             if (diff < fps){
-                std::this_thread::sleep_for(std::chrono::milliseconds((long long)fps - diff));
+                this->thread()->msleep((long long)fps - diff);
             }
         }
 

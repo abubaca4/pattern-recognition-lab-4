@@ -77,6 +77,8 @@ private:
     void detectMotion(const cv::Mat &in);
 
     void calculateStats(const cv::Mat &in);
+
+    const bool isFrameControlEnabled;
 };
 
 #endif // VIDEOPOCESSTHREAD_H

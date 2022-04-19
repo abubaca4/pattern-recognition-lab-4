@@ -152,6 +152,7 @@ inline void MainWindow::setVideoprocessThread(){
         proc->start();
         trackerChange(nullptr);
         detectionChange(nullptr);
+        on_actionFrame_control_triggered();
     }
 }
 
@@ -186,3 +187,11 @@ void MainWindow::updateDetection(std::vector<std::array<int, 4>> *detectionData)
 void MainWindow::updateStats(qreal fps){
     statusLabel.setText(QString::asprintf("FPS: %.2f", fps));
 }
+
+void MainWindow::on_actionFrame_control_triggered()
+{
+    if (proc != nullptr){
+        proc->setFrameControlStatus(ui->actionFrame_control->isChecked());
+    }
+}
+

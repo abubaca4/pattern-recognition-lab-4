@@ -34,6 +34,7 @@ public:
 private slots:
     void on_actionOpen_file_triggered();
     void on_actionOpen_camera_triggered();
+    void on_actionFrame_control_triggered();
 
     void updateFrame(cv::Mat *mat);
     void trackingStatusChange(bool tracking);

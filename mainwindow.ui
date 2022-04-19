@@ -55,9 +55,16 @@
     <addaction name="actionManual"/>
     <addaction name="actionMotion"/>
    </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="actionFrame_control"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTracker_select"/>
    <addaction name="menuSelection_mode"/>
+   <addaction name="menuOptions"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen_file">
@@ -149,6 +156,17 @@
    </property>
    <property name="text">
     <string>Motion</string>
+   </property>
+  </action>
+  <action name="actionFrame_control">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Frame control</string>
    </property>
   </action>
  </widget>

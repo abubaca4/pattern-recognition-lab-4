@@ -48,11 +48,9 @@ void VideoProcessThread::run() {
 
     uint trackerFailСount = 0;
 
-    isNeedFrameRateControl &= isFrameControlEnabled;
-
     cv::Mat tmp_frame;
     while(running) {
-        if (isNeedFrameRateControl){
+        if (isFrameControlEnabled && isNeedFrameRateControl){
             begin = std::chrono::steady_clock::now();
         }
 
@@ -101,15 +99,30 @@ void VideoProcessThread::run() {
                     }
                     selectingTracker->init(tmp_frame, selectingBound);
                     selectingNeedInit = false;
+                    trajectory = {};
+                    trajectory.enqueue(cv::Point((selectingBound.tl().x + selectingBound.br().x)/2, (selectingBound.tl().y + selectingBound.br().y)/2));
                 } else {
                     if (selectingTracker->update(tmp_frame, selectingBound)){
                         trackerFailСount = 0;
+                        trajectory.enqueue(cv::Point((selectingBound.tl().x + selectingBound.br().x)/2, (selectingBound.tl().y + selectingBound.br().y)/2));
+                        if (trajectory.count() > 100){
+                            trajectory.dequeue();
+                        }
                     } else {
                         trackerFailСount++;
                     }
                     if (trackerFailСount >= 5){
                         selectingVision = false;
                         emit trackingStatusUpdate(false);
+                    }
+                    uint collorStart = 255 - trajectory.count()*2;
+                    for (auto i = trajectory.begin(); i != trajectory.end(); i++){
+                        auto next = i;
+                        next++;
+                        if (next == trajectory.end())
+                            break;
+                        cv::line(tmp_frame, *i, *next, cv::Scalar(0, collorStart, 0), 2);
+                        collorStart+=2;
                     }
                 }
             }
@@ -136,7 +149,7 @@ void VideoProcessThread::run() {
         tmp_frame.copyTo(frame);
         dataLock->unlock();
 
-        if (isNeedFrameRateControl){
+        if (isFrameControlEnabled && isNeedFrameRateControl){
             end = std::chrono::steady_clock::now();
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
             if (diff < fpsDelayTaget){
@@ -181,7 +194,7 @@ void VideoProcessThread::detectMotion(const cv::Mat &in){
     cv::dilate(fgmask, fgmask, motionKernel, cv::Point(-1, -1), 3);
 
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(fgmask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(fgmask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     detBorderLock.lock();
     detectionBorder = {};
@@ -206,4 +219,8 @@ void VideoProcessThread::calculateStats(const cv::Mat &in){
         statsFrameCount = 0;
     }
     emit statsChanged(fps);
+}
+
+void VideoProcessThread::setFrameControlStatus(bool status){
+    isFrameControlEnabled = status;
 }

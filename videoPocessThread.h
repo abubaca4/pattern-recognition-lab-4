@@ -4,6 +4,7 @@
 #include <QString>
 #include <QThread>
 #include <QMutex>
+#include <QQueue>
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/tracking.hpp"
@@ -47,6 +48,7 @@ public:
 
     void changeDetectionType(detectionType deT);
     QMutex detBorderLock;
+    void setFrameControlStatus(bool status);
 
 protected:
     void run() override;
@@ -83,7 +85,9 @@ private:
     std::chrono::steady_clock::time_point statsBegin;
     uint statsFrameCount;
 
-    const bool isFrameControlEnabled;
+    bool isFrameControlEnabled;
+
+    QQueue<cv::Point> trajectory;
 };
 
 #endif // VIDEOPOCESSTHREAD_H

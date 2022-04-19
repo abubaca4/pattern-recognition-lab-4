@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->statusbar->addPermanentWidget(&statusLabel);
 
     ui->graphicsView->setScene(&imageScene);
+    ui->graphicsView->setMouseTracking(true);
     connect(&imageScene, &SelectingGraphicsScene::SelectionChanged, this, &MainWindow::setSelection);
     connect(&imageScene, &SelectingGraphicsScene::SelectionEnd, this, &MainWindow::startSelectionTracker);
 
@@ -33,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     buttonToDetection.insert(ui->actionManual, VideoProcessThread::detectionType::No);
     buttonToDetection.insert(ui->actionMotion, VideoProcessThread::detectionType::Motion);
+    buttonToDetection.insert(ui->actionContrast, VideoProcessThread::detectionType::Contrast);
 
     detectionSelectGroup.setExclusionPolicy(QActionGroup::ExclusionPolicy::Exclusive);
     foreach(QAction *action, ui->menuSelection_mode->actions()){
@@ -149,6 +151,7 @@ inline void MainWindow::setVideoprocessThread(){
         connect(proc, &VideoProcessThread::trackingStatusUpdate, this, &MainWindow::trackingStatusChange);
         connect(proc, &VideoProcessThread::detectionChanged, this, &MainWindow::updateDetection);
         connect(proc, &VideoProcessThread::statsChanged, this, &MainWindow::updateStats);
+        connect(&imageScene, &SelectingGraphicsScene::mouseMove, proc, &VideoProcessThread::mouseCordChange);
         proc->start();
         trackerChange(nullptr);
         detectionChange(nullptr);
@@ -163,7 +166,8 @@ inline void MainWindow::clearVideoprocessThread(){
         disconnect(proc, &VideoProcessThread::trackingStatusUpdate, this, &MainWindow::trackingStatusChange);
         disconnect(proc, &VideoProcessThread::detectionChanged, this, &MainWindow::updateDetection);
         disconnect(proc, &VideoProcessThread::statsChanged, this, &MainWindow::updateStats);
-        connect(proc, &VideoProcessThread::finished, proc, &VideoProcessThread::deleteLater);
+        disconnect(&imageScene, &SelectingGraphicsScene::mouseMove, proc, &VideoProcessThread::mouseCordChange);
+        connect(proc, &VideoProcessThread::finished, proc, &VideoProcessThread::deleteLater);    
         proc = nullptr;
     }
 }
@@ -184,8 +188,8 @@ void MainWindow::updateDetection(std::vector<std::array<int, 4>> *detectionData)
     proc->detBorderLock.unlock();
 }
 
-void MainWindow::updateStats(qreal fps){
-    statusLabel.setText(QString::asprintf("FPS: %.2f", fps));
+void MainWindow::updateStats(qreal fps, qreal mean, qreal std, qreal min, qreal max, int x, int y, int britness){
+    statusLabel.setText(QString::asprintf("FPS: %.2f, mean: %.2f, std: %.2f, min/max pix int: (%.2f, %.2f), mouse x/y/britnes (%d, %d, %d)", fps, mean, std, min, max, x, y, britness));
 }
 
 void MainWindow::on_actionFrame_control_triggered()

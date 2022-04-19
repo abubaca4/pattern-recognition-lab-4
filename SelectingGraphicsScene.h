@@ -24,6 +24,7 @@ protected:
 signals:
     void SelectionChanged(bool selection);
     void SelectionEnd();
+    void mouseMove(int x, int y);
 
 public:
     bool isSelectionVisiable, selecting;

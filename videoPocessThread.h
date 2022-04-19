@@ -43,7 +43,8 @@ public:
 
     enum detectionType{
         No,
-        Motion
+        Motion,
+        Contrast
     };
 
     void changeDetectionType(detectionType deT);
@@ -53,11 +54,14 @@ public:
 protected:
     void run() override;
 
+public slots:
+    void mouseCordChange(int x, int y);
+
 signals:
     void frameChanged(cv::Mat *data);
     void trackingStatusUpdate(bool tracking);
     void detectionChanged(std::vector<std::array<int, 4>> *data);
-    void statsChanged(qreal fps);
+    void statsChanged(qreal fps, qreal mean, qreal std, qreal min, qreal max, int xMouse, int yMouse, int britness);
 
 private:
     bool running;
@@ -79,6 +83,7 @@ private:
     void detectMotion(const cv::Mat &in);
     cv::Ptr<cv::BackgroundSubtractorMOG2> motionSegmentor;
     cv::Mat motionKernel;
+    void detectContrast(const cv::Mat &in);
 
     void calculateStats(const cv::Mat &in);
     qreal fps;
@@ -88,6 +93,10 @@ private:
     bool isFrameControlEnabled;
 
     QQueue<cv::Point> trajectory;
+
+    int mouseX, mouseY;
+
+    uint britnessLow, britnessHigh;
 };
 
 #endif // VIDEOPOCESSTHREAD_H

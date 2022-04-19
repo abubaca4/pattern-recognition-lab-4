@@ -56,6 +56,7 @@ void SelectingGraphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         selectionEnd = event->scenePos();
         emit SelectionChanged(true);
     }
+    emit mouseMove(event->scenePos().x(), event->scenePos().y());
 }
 
 void SelectingGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

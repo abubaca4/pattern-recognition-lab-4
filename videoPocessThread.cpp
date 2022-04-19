@@ -11,7 +11,9 @@ VideoProcessThread::VideoProcessThread(int camera, QMutex *lock):
     motionKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
     fps = 0.0;
     statsBegin = std::chrono::steady_clock::now();
-    statsFrameCount = 0;
+    mouseX = mouseY = statsFrameCount = 0;
+    britnessLow = 150;
+    britnessHigh = 255;
 }
 
 VideoProcessThread::VideoProcessThread(QString videoPath, QMutex *lock):
@@ -25,7 +27,9 @@ VideoProcessThread::VideoProcessThread(QString videoPath, QMutex *lock):
     motionKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
     fps = 0.0;
     statsBegin = std::chrono::steady_clock::now();
-    statsFrameCount = 0;
+    mouseX = mouseY = statsFrameCount = 0;
+    britnessLow = 150;
+    britnessHigh = 255;
 }
 
 VideoProcessThread::~VideoProcessThread()
@@ -100,30 +104,29 @@ void VideoProcessThread::run() {
                     selectingTracker->init(tmp_frame, selectingBound);
                     selectingNeedInit = false;
                     trajectory = {};
-                    trajectory.enqueue(cv::Point((selectingBound.tl().x + selectingBound.br().x)/2, (selectingBound.tl().y + selectingBound.br().y)/2));
                 } else {
                     if (selectingTracker->update(tmp_frame, selectingBound)){
                         trackerFailСount = 0;
-                        trajectory.enqueue(cv::Point((selectingBound.tl().x + selectingBound.br().x)/2, (selectingBound.tl().y + selectingBound.br().y)/2));
-                        if (trajectory.count() > 100){
-                            trajectory.dequeue();
-                        }
                     } else {
                         trackerFailСount++;
                     }
                     if (trackerFailСount >= 5){
-                        selectingVision = false;
+                        selectionTrackingStart = selectingVision = false;
                         emit trackingStatusUpdate(false);
                     }
-                    uint collorStart = 255 - trajectory.count()*2;
-                    for (auto i = trajectory.begin(); i != trajectory.end(); i++){
-                        auto next = i;
-                        next++;
-                        if (next == trajectory.end())
-                            break;
-                        cv::line(tmp_frame, *i, *next, cv::Scalar(0, collorStart, 0), 2);
-                        collorStart+=2;
-                    }
+                }
+                trajectory.enqueue(cv::Point((selectingBound.tl().x + selectingBound.br().x)/2, (selectingBound.tl().y + selectingBound.br().y)/2));
+                if (trajectory.count() > 100){
+                    trajectory.dequeue();
+                }
+                uint collorStart = 255 - trajectory.count()*2;
+                for (auto i = trajectory.begin(); i != trajectory.end(); i++){
+                    auto next = i;
+                    next++;
+                    if (next == trajectory.end())
+                        break;
+                    cv::line(tmp_frame, *i, *next, cv::Scalar(0, collorStart, 0), 2);
+                    collorStart+=2;
                 }
             }
             cv::rectangle(tmp_frame, selectingBound, cv::Scalar(0, 0, 255), 1);
@@ -132,6 +135,11 @@ void VideoProcessThread::run() {
             case Motion:
                 detectMotion(tmp_frame);
                 break;
+
+            case Contrast:
+                detectContrast(tmp_frame);
+                break;
+
             default:
                 break;
             }
@@ -205,6 +213,24 @@ void VideoProcessThread::detectMotion(const cv::Mat &in){
     detBorderLock.unlock();
 }
 
+void VideoProcessThread::detectContrast(const cv::Mat &in){
+    cv::Mat grayIn;
+    cv::cvtColor(in, grayIn, cv::COLOR_BGR2GRAY);
+    cv::Mat thresh;
+    cv::threshold(grayIn, thresh, britnessLow, britnessHigh, cv::THRESH_BINARY);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(thresh, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    detBorderLock.lock();
+    detectionBorder = {};
+    for (auto &i: contours){
+        cv::Rect rect = cv::boundingRect(i);
+        detectionBorder.push_back({rect.tl().x, rect.tl().y, rect.br().x, rect.br().y});
+    }
+    detBorderLock.unlock();
+}
+
 void VideoProcessThread::changeDetectionType(detectionType deT){
     detection = deT;
 }
@@ -218,9 +244,20 @@ void VideoProcessThread::calculateStats(const cv::Mat &in){
         statsBegin = current;
         statsFrameCount = 0;
     }
-    emit statsChanged(fps);
+    cv::Mat grayIn;
+    cv::cvtColor(in, grayIn, cv::COLOR_BGR2GRAY);
+    cv::Scalar mean, std;
+    cv::meanStdDev(grayIn, mean, std);
+    qreal min, max;
+    cv::minMaxLoc(grayIn, &min, &max);
+    emit statsChanged(fps, mean[0], std[0], min, max, mouseX, mouseY, grayIn.at<uint8_t>(cv::Point(mouseX, mouseY)));
 }
 
 void VideoProcessThread::setFrameControlStatus(bool status){
     isFrameControlEnabled = status;
+}
+
+void VideoProcessThread::mouseCordChange(int x, int y){
+    mouseX = x;
+    mouseY = y;
 }

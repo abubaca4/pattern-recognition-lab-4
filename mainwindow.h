@@ -41,7 +41,7 @@ private slots:
     void startSelectionTracker();
     void setSelection(bool selection);
     void updateDetection(std::vector<std::array<int, 4>> *detectionData);
-    void updateStats(qreal fps);
+    void updateStats(qreal fps, qreal mean, qreal std, qreal min, qreal max, int x, int y, int britness);
 
     void trackerChange(QAction* action);
     void detectionChange(QAction* action);

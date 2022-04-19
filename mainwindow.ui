@@ -54,6 +54,7 @@
     </property>
     <addaction name="actionManual"/>
     <addaction name="actionMotion"/>
+    <addaction name="actionContrast"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
@@ -167,6 +168,14 @@
    </property>
    <property name="text">
     <string>Frame control</string>
+   </property>
+  </action>
+  <action name="actionContrast">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Contrast</string>
    </property>
   </action>
  </widget>

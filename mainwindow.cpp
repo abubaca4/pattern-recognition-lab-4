@@ -42,6 +42,9 @@ MainWindow::MainWindow(QWidget *parent)
     }
     connect(&detectionSelectGroup, &QActionGroup::triggered, this, &MainWindow::detectionChange);
     detectionChange(nullptr);
+
+    contrastBritnessLow = 150;
+    contrastBritnessHigh = 255;
 }
 
 MainWindow::~MainWindow()
@@ -156,6 +159,7 @@ inline void MainWindow::setVideoprocessThread(){
         trackerChange(nullptr);
         detectionChange(nullptr);
         on_actionFrame_control_triggered();
+        proc->setContrastBorders(contrastBritnessLow, contrastBritnessHigh);
     }
 }
 
@@ -199,3 +203,48 @@ void MainWindow::on_actionFrame_control_triggered()
     }
 }
 
+void MainWindow::on_actionSet_contrast_borders_triggered()
+{
+    QDialog dialog(this);
+    dialog.setWindowTitle("Contrast settings");
+
+    QLabel title("If low border smaller than high they will be swapped", &dialog);
+
+    QIntValidator borderValidator(0, 255, &dialog);
+
+    QLabel lowBorderLabel("Low britness border:", &dialog);
+    QLineEdit lowBorderEdit(QString::number(contrastBritnessLow), &dialog);
+    lowBorderEdit.setValidator(&borderValidator);
+    lowBorderLabel.setBuddy(&lowBorderEdit);
+
+    QLabel highBorderLabel("High britness border:", &dialog);
+    QLineEdit highBorderEdit(QString::number(contrastBritnessHigh), &dialog);
+    highBorderEdit.setValidator(&borderValidator);
+    highBorderLabel.setBuddy(&highBorderEdit);
+
+    QPushButton okButton("Ok", &dialog), closeButton("Close", &dialog);
+    connect(&closeButton, &QPushButton::clicked, &dialog, &QDialog::close);
+    connect(&okButton, &QPushButton::clicked, this, [&](bool checked){
+        Q_UNUSED(checked);
+        contrastBritnessLow = qMin(lowBorderEdit.text().toInt(), highBorderEdit.text().toInt());
+        contrastBritnessHigh = qMax(lowBorderEdit.text().toInt(), highBorderEdit.text().toInt());
+        dialog.accept();
+    });
+
+    QVBoxLayout mainLayout(&dialog);
+    QHBoxLayout secondLine, thirdLine, fourthLine;
+    mainLayout.addWidget(&title);
+    secondLine.addWidget(&lowBorderLabel);
+    secondLine.addWidget(&lowBorderEdit);
+    mainLayout.addLayout(&secondLine);
+    thirdLine.addWidget(&highBorderLabel);
+    thirdLine.addWidget(&highBorderEdit);
+    mainLayout.addLayout(&thirdLine);
+    fourthLine.addWidget(&okButton);
+    fourthLine.addWidget(&closeButton);
+    mainLayout.addLayout(&fourthLine);
+
+    if (dialog.exec() && proc != nullptr) {
+        proc->setContrastBorders(contrastBritnessLow, contrastBritnessHigh);
+    }
+}

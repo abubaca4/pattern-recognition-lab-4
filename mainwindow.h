@@ -10,6 +10,12 @@
 #include <QMap>
 #include <QActionGroup>
 #include <QLabel>
+#include <QDialog>
+#include <QLineEdit>
+#include <QIntValidator>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 #include <vector>
 #include <array>
@@ -35,6 +41,7 @@ private slots:
     void on_actionOpen_file_triggered();
     void on_actionOpen_camera_triggered();
     void on_actionFrame_control_triggered();
+    void on_actionSet_contrast_borders_triggered();
 
     void updateFrame(cv::Mat *mat);
     void trackingStatusChange(bool tracking);
@@ -64,5 +71,7 @@ private:
     QActionGroup detectionSelectGroup;
 
     QLabel statusLabel;
+
+    uint contrastBritnessLow, contrastBritnessHigh;
 };
 #endif // MAINWINDOW_H

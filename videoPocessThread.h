@@ -50,6 +50,7 @@ public:
     void changeDetectionType(detectionType deT);
     QMutex detBorderLock;
     void setFrameControlStatus(bool status);
+    void setContrastBorders(uint low, uint high);
 
 protected:
     void run() override;

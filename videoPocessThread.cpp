@@ -261,3 +261,8 @@ void VideoProcessThread::mouseCordChange(int x, int y){
     mouseX = x;
     mouseY = y;
 }
+
+void VideoProcessThread::setContrastBorders(uint low, uint high){
+    britnessLow = low;
+    britnessHigh = high;
+}

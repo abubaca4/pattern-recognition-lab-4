@@ -61,6 +61,7 @@
      <string>Options</string>
     </property>
     <addaction name="actionFrame_control"/>
+    <addaction name="actionSet_contrast_borders"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTracker_select"/>
@@ -176,6 +177,11 @@
    </property>
    <property name="text">
     <string>Contrast</string>
+   </property>
+  </action>
+  <action name="actionSet_contrast_borders">
+   <property name="text">
+    <string>Set contrast borders</string>
    </property>
   </action>
  </widget>

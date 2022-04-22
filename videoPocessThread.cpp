@@ -257,7 +257,8 @@ void VideoProcessThread::calculateStats(const cv::Mat &in){
     cv::meanStdDev(grayIn, mean, std);
     qreal min, max;
     cv::minMaxLoc(grayIn, &min, &max);
-    emit statsChanged(fps, mean[0], std[0], min, max, mouseX, mouseY, grayIn.at<uint8_t>(cv::Point(mouseX, mouseY)));
+    cv::Point mousePoint = cv::Rect(cv::Point(), grayIn.size()).contains(cv::Point(mouseX, mouseY)) ? cv::Point(mouseX, mouseY) : cv::Point(0, 0);
+    emit statsChanged(fps, mean[0], std[0], min, max, mouseX, mouseY, grayIn.at<uint8_t>(mousePoint));
 }
 
 void VideoProcessThread::setFrameControlStatus(bool status){

@@ -185,8 +185,15 @@ void VideoProcessThread::changeSelectionTracker(selectingTrackerType tracker){
 }
 
 void VideoProcessThread::startSelectionTracker(){
-    selectingNeedInit = true;
-    selectionTrackingStart = true;
+    if (selectingBound.area() > 5)
+    {
+        selectingNeedInit = true;
+        selectionTrackingStart = true;
+    }
+    else{
+        selectingVision = false;
+        emit trackingStatusUpdate(false);
+    }
 }
 
 void VideoProcessThread::detectMotion(const cv::Mat &in){

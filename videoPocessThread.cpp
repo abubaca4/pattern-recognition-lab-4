@@ -119,7 +119,7 @@ void VideoProcessThread::run() {
                 if (trajectory.count() > 100){
                     trajectory.dequeue();
                 }
-                uint collorStart = 255 - trajectory.count()*2;
+                uint collorStart = 255 - (trajectory.count() - 1)*2;
                 for (auto i = trajectory.begin(); i != trajectory.end(); i++){
                     auto next = i;
                     next++;

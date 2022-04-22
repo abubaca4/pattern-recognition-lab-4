@@ -173,6 +173,7 @@ inline void MainWindow::clearVideoprocessThread(){
         disconnect(&imageScene, &SelectingGraphicsScene::mouseMove, proc, &VideoProcessThread::mouseCordChange);
         connect(proc, &VideoProcessThread::finished, proc, &VideoProcessThread::deleteLater);    
         proc = nullptr;
+        imageScene.isSelectionVisiable = false;
     }
 }
 

@@ -89,7 +89,7 @@ void MainWindow::on_actionOpen_file_triggered()
 {
     clearVideoprocessThread();
     QFileDialog dialog(this);
-    dialog.setWindowTitle("Open video file ...");
+    dialog.setWindowTitle(tr("Open video file ..."));
     dialog.setFileMode(QFileDialog::ExistingFile);
     dialog.setNameFilter(tr("Videos (*.mp4 *.avi)"));
     static QRegularExpression name_chacker = QRegularExpression(".+\\.(mp4|avi)");
@@ -99,7 +99,7 @@ void MainWindow::on_actionOpen_file_triggered()
         if (name_chacker.match(fileNames.at(0)).hasMatch()) {
             proc = new VideoProcessThread(fileNames.at(0), &dataLock);
         } else {
-            QMessageBox::information(this, "Information", "Open error: bad format of filename.");
+            QMessageBox::information(this, tr("Information"), tr("Open error: bad format of filename."));
         }
     } else {
         return;
@@ -194,7 +194,8 @@ void MainWindow::updateDetection(std::vector<std::array<int, 4>> *detectionData)
 }
 
 void MainWindow::updateStats(qreal fps, qreal mean, qreal std, qreal min, qreal max, int x, int y, int britness){
-    statusLabel.setText(QString::asprintf("FPS: %.2f, mean: %.2f, std: %.2f, min/max pix int: (%.2f, %.2f), mouse x/y/britnes (%d, %d, %d)", fps, mean, std, min, max, x, y, britness));
+    static std::string status = tr("FPS: %.2f, mean: %.2f, std: %.2f, min/max pix int: (%.2f, %.2f), mouse x/y/britnes (%d, %d, %d)").toStdString();
+    statusLabel.setText(QString::asprintf(status.c_str(), fps, mean, std, min, max, x, y, britness));
 }
 
 void MainWindow::on_actionFrame_control_triggered()
@@ -207,23 +208,23 @@ void MainWindow::on_actionFrame_control_triggered()
 void MainWindow::on_actionSet_contrast_borders_triggered()
 {
     QDialog dialog(this);
-    dialog.setWindowTitle("Contrast settings");
+    dialog.setWindowTitle(tr("Contrast settings"));
 
-    QLabel title("If low border smaller than high they will be swapped", &dialog);
+    QLabel title(tr("If low border smaller than high they will be swapped"), &dialog);
 
     QIntValidator borderValidator(0, 255, &dialog);
 
-    QLabel lowBorderLabel("Low britness border:", &dialog);
+    QLabel lowBorderLabel(tr("Low britness border:"), &dialog);
     QLineEdit lowBorderEdit(QString::number(contrastBritnessLow), &dialog);
     lowBorderEdit.setValidator(&borderValidator);
     lowBorderLabel.setBuddy(&lowBorderEdit);
 
-    QLabel highBorderLabel("High britness border:", &dialog);
+    QLabel highBorderLabel(tr("High britness border:"), &dialog);
     QLineEdit highBorderEdit(QString::number(contrastBritnessHigh), &dialog);
     highBorderEdit.setValidator(&borderValidator);
     highBorderLabel.setBuddy(&highBorderEdit);
 
-    QPushButton okButton("Ok", &dialog), closeButton("Close", &dialog);
+    QPushButton okButton(tr("Ok"), &dialog), closeButton(tr("Close"), &dialog);
     connect(&closeButton, &QPushButton::clicked, &dialog, &QDialog::close);
     connect(&okButton, &QPushButton::clicked, this, [&](bool checked){
         Q_UNUSED(checked);

@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <array>
+#include <string>
 
 #include "opencv2/opencv.hpp"
 

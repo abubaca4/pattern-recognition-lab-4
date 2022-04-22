@@ -72,6 +72,7 @@ void MainWindow::detectionChange(QAction* action){
         auto detectionMode = buttonToDetection[detectionSelectGroup.checkedAction()];
         switch (detectionMode) {
         case VideoProcessThread::detectionType::Motion:
+        case VideoProcessThread::detectionType::Contrast:
             imageScene.selectionT = SelectingGraphicsScene::selectionType::borders;
             break;
         case VideoProcessThread::detectionType::No:
